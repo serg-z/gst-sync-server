@@ -37,6 +37,8 @@ gboolean gst_sync_client_start (GstSyncClient * client, GError ** error);
 
 void gst_sync_client_stop (GstSyncClient * client);
 
+void gst_sync_client_preset_pipeline_flags (GstSyncClient * client, gint flags);
+
 G_END_DECLS
 
 #endif /* __GST_SYNC_CLIENT_H */

@@ -70,6 +70,8 @@ struct _GstSyncClient {
   GstClockTime seek_offset;
 
   guint64 last_duration;
+
+  gint pipeline_preset_flags;
 };
 
 struct _GstSyncClientClass {
@@ -338,6 +340,9 @@ update_pipeline (GstSyncClient * self, gboolean advance)
         "base-time-offset", base_time_offset,
         NULL);
   }
+
+  GST_DEBUG_OBJECT (self, "Setting pipeline flags to 0x%x", self->pipeline_preset_flags);
+  g_object_set(GST_OBJECT (self->pipeline), "flags", self->pipeline_preset_flags, NULL);
 
   uri = uris[current_track];
   g_object_set (GST_OBJECT (self->pipeline), "uri", uri, NULL);
@@ -852,6 +857,8 @@ gst_sync_client_init (GstSyncClient * self)
 
   self->seek_offset = 0;
   g_atomic_int_set (&self->seek_state, NEED_SEEK);
+
+  g_object_get(GST_OBJECT (self->pipeline), "flags", &self->pipeline_preset_flags, NULL);
 }
 
 /**
@@ -940,4 +947,10 @@ void
 gst_sync_client_stop (GstSyncClient * client)
 {
   gst_sync_control_client_stop (client->client);
+}
+
+void
+gst_sync_client_preset_pipeline_flags (GstSyncClient * client, gint flags)
+{
+  client->pipeline_preset_flags = flags;
 }
