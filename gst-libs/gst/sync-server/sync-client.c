@@ -72,6 +72,9 @@ struct _GstSyncClient {
   guint64 last_duration;
 
   gint pipeline_preset_flags;
+
+  TransformsFunc cb_transforms;
+  gpointer cb_transforms_ud;
 };
 
 struct _GstSyncClientClass {
@@ -199,6 +202,10 @@ update_transform (GstSyncClient * self)
   transforms = g_variant_lookup_value (all, self->id, G_VARIANT_TYPE_VARDICT);
   if (!transforms)
     goto done;
+
+  if (self->cb_transforms) {
+    self->cb_transforms (transforms, self->cb_transforms_ud);
+  }
 
   /* First look for crop parameters */
   transform =
@@ -859,6 +866,8 @@ gst_sync_client_init (GstSyncClient * self)
   g_atomic_int_set (&self->seek_state, NEED_SEEK);
 
   g_object_get(GST_OBJECT (self->pipeline), "flags", &self->pipeline_preset_flags, NULL);
+
+  self->cb_transforms = NULL;
 }
 
 /**
@@ -960,4 +969,12 @@ gst_sync_client_set_sink (GstSyncClient * client, GstElement * sink)
 {
   GST_DEBUG_OBJECT (client, "Setting sink to %p", sink);
   g_object_set(GST_OBJECT(client->pipeline), "video-sink", sink, NULL);
+}
+
+void
+gst_sync_client_set_transforms_callback (GstSyncClient * client,
+    TransformsFunc func, gpointer user_data)
+{
+  client->cb_transforms = func;
+  client->cb_transforms_ud = user_data;
 }

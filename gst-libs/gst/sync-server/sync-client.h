@@ -26,6 +26,8 @@
 
 G_BEGIN_DECLS
 
+typedef void (*TransformsFunc) (GVariant *transforms, gpointer user_data);
+
 #define GST_TYPE_SYNC_CLIENT (gst_sync_client_get_type ())
 G_DECLARE_FINAL_TYPE (GstSyncClient, gst_sync_client, GST, SYNC_CLIENT,
     GObject);
@@ -40,6 +42,9 @@ void gst_sync_client_stop (GstSyncClient * client);
 void gst_sync_client_preset_pipeline_flags (GstSyncClient * client, gint flags);
 
 void gst_sync_client_set_sink (GstSyncClient * client, GstElement * sink);
+
+void gst_sync_client_set_transforms_callback (GstSyncClient * client,
+    TransformsFunc func, gpointer user_data);
 
 G_END_DECLS
 
