@@ -954,3 +954,10 @@ gst_sync_client_preset_pipeline_flags (GstSyncClient * client, gint flags)
 {
   client->pipeline_preset_flags = flags;
 }
+
+void
+gst_sync_client_set_sink (GstSyncClient * client, GstElement * sink)
+{
+  GST_DEBUG_OBJECT (client, "Setting sink to %p", sink);
+  g_object_set(GST_OBJECT(client->pipeline), "video-sink", sink, NULL);
+}
