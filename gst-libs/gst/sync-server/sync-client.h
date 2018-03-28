@@ -46,6 +46,9 @@ void gst_sync_client_set_sink (GstSyncClient * client, GstElement * sink);
 void gst_sync_client_set_transforms_callback (GstSyncClient * client,
     TransformsFunc func, gpointer user_data);
 
+void gst_sync_client_set_gst_transforms_enabled (GstSyncClient * client,
+    gboolean gst_transforms_enabled);
+
 G_END_DECLS
 
 #endif /* __GST_SYNC_CLIENT_H */

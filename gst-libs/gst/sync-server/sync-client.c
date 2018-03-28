@@ -75,6 +75,8 @@ struct _GstSyncClient {
 
   TransformsFunc cb_transforms;
   gpointer cb_transforms_ud;
+
+  gboolean gst_transforms_enabled;
 };
 
 struct _GstSyncClientClass {
@@ -205,6 +207,10 @@ update_transform (GstSyncClient * self)
 
   if (self->cb_transforms) {
     self->cb_transforms (transforms, self->cb_transforms_ud);
+  }
+
+  if (!self->gst_transforms_enabled) {
+    goto done;
   }
 
   /* First look for crop parameters */
@@ -868,6 +874,8 @@ gst_sync_client_init (GstSyncClient * self)
   g_object_get(GST_OBJECT (self->pipeline), "flags", &self->pipeline_preset_flags, NULL);
 
   self->cb_transforms = NULL;
+
+  self->gst_transforms_enabled = TRUE;
 }
 
 /**
@@ -977,4 +985,11 @@ gst_sync_client_set_transforms_callback (GstSyncClient * client,
 {
   client->cb_transforms = func;
   client->cb_transforms_ud = user_data;
+}
+
+void
+gst_sync_client_set_gst_transforms_enabled (GstSyncClient * client,
+    gboolean gst_transforms_enabled)
+{
+  client->gst_transforms_enabled = gst_transforms_enabled;
 }
