@@ -18,6 +18,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <stdbool.h>
+
 #include <glib.h>
 #include <glib-object.h>
 #include <glib/gprintf.h>
@@ -213,6 +215,50 @@ client_left_cb (GstSyncServer * server, gchar * id, gpointer user_data)
   g_message ("Removed client: %s", id);
 }
 
+static void
+playlist_changed_cb (GFileMonitor * monitor, GFile * file, GFile * other_file, GFileMonitorEvent event_type, gpointer user_data)
+{
+  bool reload = false;
+
+  switch (event_type) {
+    case G_FILE_MONITOR_EVENT_CHANGED:
+      g_message ("Playlist changed");
+      reload = true;
+      break;
+    //case G_FILE_MONITOR_EVENT_CREATED:
+    //  g_message ("Playlist created");
+    //  reload = true;
+    //  break;
+    //case G_FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
+  }
+
+  if (reload) {
+    g_message ("Playlist reload");
+
+    char * path = g_file_get_path (file);
+
+    if (!path) {
+      g_warning ("Playlist path is NULL");
+      return;
+    }
+
+    g_message ("Playlist path %s", path);
+
+    if (!read_playlist_file (path)) {
+      g_warning ("Playlist reading failed");
+      return;
+    }
+
+    GstSyncServer * server = (GstSyncServer *) user_data;
+
+    if (!server)
+      return;
+
+    g_object_set (server, "playlist",
+        gst_sync_server_playlist_new (uris, durations, n_tracks, 0), NULL);
+  }
+}
+
 int main (int argc, char **argv)
 {
   GstSyncServer *server;
@@ -279,6 +325,12 @@ int main (int argc, char **argv)
   g_signal_connect (server, "client-joined", G_CALLBACK (client_joined_cb),
       NULL);
   g_signal_connect (server, "client-left", G_CALLBACK (client_left_cb), NULL);
+
+  GFile *gfile = g_file_new_for_path (playlist_path);
+
+  GFileMonitor *playlist_mon = g_file_monitor_file (gfile, G_FILE_MONITOR_NONE, NULL, NULL);
+
+  g_signal_connect (playlist_mon, "changed", G_CALLBACK (playlist_changed_cb), server);
 
   input = g_io_channel_unix_new (0);
   g_io_channel_set_encoding (input, NULL, NULL);
